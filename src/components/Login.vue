@@ -85,7 +85,6 @@ export default {
             message: '登录成功',
             type: 'success',
             duration: 1000
-
           })
         }
         // 将登录成功之后的token保存到客户端的sessionStorage中

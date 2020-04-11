@@ -3,7 +3,20 @@ import App from './App.vue'
 import router from './router'
 // 导入全局样式表
 import '../src/assets/css/global.css'
-import { Form, FormItem, Input, Button, Notification } from 'element-ui'
+import {
+  Form,
+  FormItem,
+  Input,
+  Button,
+  Notification,
+  Container,
+  Header,
+  Aside,
+  Main,
+  Menu,
+  Submenu,
+  MenuItem
+} from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css';
 
 import axios from 'axios'
@@ -11,6 +24,15 @@ import axios from 'axios'
 Vue.prototype.$http = axios
 // 设置axios默认根路径
 axios.defaults.baseURL = 'http://timemeetyou.com:8889/api/private/v1/'
+// 请求拦截器
+axios.interceptors.request.use(config => {
+  // console.log(config)
+  // 为请求头的 Authorization 加上token 登陆期间 token值为null 登陆成功 token才会有值
+  config.headers.Authorization = window.sessionStorage.getItem('token')
+  // console.log(config)
+  // 在最后必须return config
+  return config
+})
 
 Vue.config.productionTip = false
 
@@ -18,6 +40,13 @@ Vue.use(Form)
 Vue.use(FormItem)
 Vue.use(Input)
 Vue.use(Button)
+Vue.use(Container)
+Vue.use(Header)
+Vue.use(Aside)
+Vue.use(Main)
+Vue.use(Menu)
+Vue.use(Submenu)
+Vue.use(MenuItem)
 Vue.prototype.$Notification = Notification
 
 new Vue({
