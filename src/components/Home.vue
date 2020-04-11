@@ -23,6 +23,7 @@
           :collapse="isCollapse"
           :collapse-transition = "false"
           router
+          :default-active="activePath"
         >
           <!-- 一级菜单 -->
           <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
@@ -35,9 +36,10 @@
             </template>
             <!-- 二级菜单 -->
             <el-menu-item
-              :index="subItem.path + ''"
+              :index="'/' + subItem.path + ''"
               v-for="subItem in item.children"
               :key="subItem.id"
+              @click="saveNavState('/' + subItem.path)"
             >
               <!-- 二级菜单模板区域 -->
               <template slot="title">
@@ -73,12 +75,15 @@ export default {
         '145': 'el-icon-s-data'
       },
       // 切换左侧菜单展开和关闭
-      isCollapse: false
+      isCollapse: false,
+      // 激活的链接地址
+      activePath: ''
     }
   },
   created () {
     // 获取所有左侧菜单
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   },
   methods: {
     logOut () {
@@ -104,6 +109,12 @@ export default {
     // 点击按钮切换菜单折叠和展开
     toggleCollapse () {
       this.isCollapse = !this.isCollapse
+    },
+    // 保存链接激活状态
+    saveNavState (activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
+      // console.log(activePath)
+      this.activePath = activePath
     }
   }
 }
