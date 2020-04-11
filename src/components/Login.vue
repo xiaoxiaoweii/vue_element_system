@@ -6,19 +6,19 @@
         <img src="../assets/avatar.png" alt="头像" />
       </div>
       <!-- 登录表单区域 -->
-      <el-form label-width="0px" class="login_form">
+      <el-form :model="loginForm" :rules="loginFormRules" label-width="0px" class="login_form">
         <!-- 用户名 -->
-        <el-form-item>
-          <el-input></el-input>
+        <el-form-item prop="username">
+          <el-input prefix-icon="el-icon-user" v-model="loginForm.username"></el-input>
         </el-form-item>
         <!-- 用户密码 -->
-        <el-form-item>
-          <el-input></el-input>
+        <el-form-item prop="password">
+          <el-input prefix-icon="el-icon-lock" v-model="loginForm.password" type="password"></el-input>
         </el-form-item>
         <!-- 按钮区域 -->
         <el-form-item class="btns">
-           <el-button type="primary">登录</el-button>
-           <el-button type="info">重置</el-button>
+          <el-button type="primary">登录</el-button>
+          <el-button type="info">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -26,7 +26,28 @@
 </template>
 <script>
 export default {
-
+  data () {
+    return {
+      // 登录表单的数据绑定对象
+      loginForm: {
+        username: '',
+        password: ''
+      },
+      // 登录表单验证规则
+      loginFormRules: {
+        username: [
+          // 验证用户名是否合法
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+        ],
+        // 验证密码是否合法
+        password: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
+        ]
+      }
+    }
+  }
 }
 </script>
 
@@ -73,6 +94,5 @@ export default {
 .btns {
   display: flex;
   justify-content: space-around;
-
 }
 </style>
