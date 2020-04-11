@@ -30,8 +30,8 @@ export default {
     return {
       // 登录表单的数据绑定对象
       loginForm: {
-        username: '',
-        password: ''
+        username: 'admin',
+        password: '123456'
       },
       // 登录表单验证规则
       loginFormRules: {
@@ -57,9 +57,39 @@ export default {
     },
     login() {
       // console.log(this);
-      // 登录预校验
-      this.$refs.loginFormRef.validate((valid)=> {
-        console.log(valid)
+      // 登录预校验结果查看
+      this.$refs.loginFormRef.validate(async valid=> {
+        // console.log(valid)
+        // 如果验证未通过
+        if(!valid) return;
+        // 如果有预校验通过 接受登录结果
+        const { data: res } = await this.$http.post('login', this.loginForm);
+        // console.log(res.meta.status)
+        // 判断返回状态是否为请求成功
+        if(res.meta.status !== 200) {
+          return this.$Notification({
+            title: 'error',
+            message: '登录失败',
+            type: 'error',
+            duration: 1000
+          })
+        } else {
+          this.$Notification({
+            title: 'success',
+            message: '登录成功',
+            type: 'success',
+            duration: 1000
+            
+          })
+        }
+        // 将登录成功之后的token保存到客户端的sessionStorage中
+        // 登陆中除了登录之外的其他API接口 必须在登录之后才能访问
+        // token只再当前网页打开期间生效 
+        console.log(res.data.token)
+        // 将token保存到sessionStorage中
+        window.sessionStorage.setItem('token', res.data.token)
+        // 通过编程式导航跳转到后台主页 
+        this.$router.push('/home')
       })
     }
   }
