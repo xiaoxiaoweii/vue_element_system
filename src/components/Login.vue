@@ -6,7 +6,13 @@
         <img src="../assets/avatar.png" alt="头像" />
       </div>
       <!-- 登录表单区域 -->
-      <el-form :model="loginForm" :rules="loginFormRules" label-width="0px" class="login_form" ref="loginFormRef">
+      <el-form
+        :model="loginForm"
+        :rules="loginFormRules"
+        label-width="0px"
+        class="login_form"
+        ref="loginFormRef"
+      >
         <!-- 用户名 -->
         <el-form-item prop="username">
           <el-input prefix-icon="el-icon-user" v-model="loginForm.username"></el-input>
@@ -50,23 +56,23 @@ export default {
   },
   methods: {
     // 点击重置按钮 重置登录表单
-    resetLoginForm() {
+    resetLoginForm () {
       // console.log(this);
       // 重置表单数据
       this.$refs.loginFormRef.resetFields();
     },
-    login() {
+    login () {
       // console.log(this);
       // 登录预校验结果查看
-      this.$refs.loginFormRef.validate(async valid=> {
+      this.$refs.loginFormRef.validate(async valid => {
         // console.log(valid)
         // 如果验证未通过
-        if(!valid) return;
+        if (!valid) return;
         // 如果有预校验通过 接受登录结果
         const { data: res } = await this.$http.post('login', this.loginForm);
         // console.log(res.meta.status)
         // 判断返回状态是否为请求成功
-        if(res.meta.status !== 200) {
+        if (res.meta.status !== 200) {
           return this.$Notification({
             title: 'error',
             message: '登录失败',
@@ -79,13 +85,13 @@ export default {
             message: '登录成功',
             type: 'success',
             duration: 1000
-            
+
           })
         }
         // 将登录成功之后的token保存到客户端的sessionStorage中
         // 登陆中除了登录之外的其他API接口 必须在登录之后才能访问
         // token只再当前网页打开期间生效 
-        console.log(res.data.token)
+        // console.log(res.data.token)
         // 将token保存到sessionStorage中
         window.sessionStorage.setItem('token', res.data.token)
         // 通过编程式导航跳转到后台主页 
