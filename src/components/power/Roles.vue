@@ -1,0 +1,276 @@
+<template>
+  <div>
+    <!-- 面包屑导航区域 -->
+    <el-breadcrumb separator="/">
+      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item>权限管理</el-breadcrumb-item>
+      <el-breadcrumb-item>角色列表</el-breadcrumb-item>
+    </el-breadcrumb>
+    <!-- 卡片视图 -->
+    <el-card>
+      <!-- 添加角色按钮区域 -->
+      <el-row>
+        <el-col>
+          <el-button type="primary" size="small" @click="addDialogVisible = true">添加角色</el-button>
+        </el-col>
+      </el-row>
+      <!-- 角色权限表格 -->
+      <el-table :data="roleList" border stripe>
+        <el-table-column type="expand" align="center"></el-table-column>
+        <!-- 索引列 -->
+        <el-table-column type="index" label="#" align="center"></el-table-column>
+        <el-table-column label="角色名称" prop="roleName" align="center"></el-table-column>
+        <el-table-column label="角色描述" prop="roleDesc" align="center"></el-table-column>
+        <el-table-column label="操作" width="300px" align="center">
+          <template slot-scope="scope">
+            <!-- 修改按钮 -->
+            <el-button
+              type="primary"
+              icon="el-icon-edit"
+              size="mini"
+              @click="showEditDialog(scope.row.id)"
+            >编辑</el-button>
+            <!-- 删除按钮 -->
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+              @click="removeRoleById(scope.row.id)"
+            >删除</el-button>
+            <!-- 分配角色按钮 -->
+            <el-button type="warning" icon="el-icon-setting" size="mini">分配权限</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 添加用户对话框 -->
+      <el-dialog title="提示" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
+        <!-- 内容主体区域 -->
+        <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
+          <el-form-item label="名称" prop="roleName">
+            <el-input v-model="addForm.roleName"></el-input>
+          </el-form-item>
+          <el-form-item label="描述" prop="roleDesc">
+            <el-input v-model="addForm.roleDesc"></el-input>
+          </el-form-item>
+        </el-form>
+        <!-- 底部区域 -->
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="addDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="addRoles">确 定</el-button>
+        </span>
+      </el-dialog>
+
+      <!-- 修改用户对话框 -->
+      <el-dialog
+        title="修改用户"
+        :visible.sync="editDialogVisible"
+        width="50%"
+        @close="editDialogClosed"
+      >
+        <!-- 内容主体区域 -->
+        <el-form label-width="70px" :model="editForm" :rules="editFormRules" ref="editFormRef">
+          <el-form-item label="名称"  prop="roleName">
+            <el-input v-model="editForm.roleName"></el-input>
+          </el-form-item>
+          <el-form-item label="描述" prop="roleDesc">
+            <el-input v-model="editForm.roleDesc"></el-input>
+          </el-form-item>
+        </el-form>
+        <!-- 底部区域 -->
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editRoles"  >确 定</el-button>
+        </span>
+      </el-dialog>
+    </el-card>
+  </div>
+</template>
+<script>
+export default {
+  data () {
+    return {
+      // 所有角色列表
+      roleList: [],
+      // 添加用户对话框
+      addDialogVisible: false,
+      // 添加用户表单数据
+      addForm: {},
+      // 添加用户表单校验
+      addFormRules: {
+        roleName: [
+          { required: true, message: '请输入角色名称', trigger: 'blur' },
+        ],
+        roleDesc: [
+          { required: true, message: '请输入角色描述', trigger: 'blur' },
+        ]
+      },
+      // 控制修改用户对话框是否可见
+      editDialogVisible: false,
+      // 保存修改用户信息
+      editForm: {},
+      // 修改用户表单校验
+      editFormRules: {
+        roleName: [
+          { required: true, message: '请输入角色名称', trigger: 'blur' }
+        ],
+        roleDesc: [
+          { required: true, message: '请输入角色描述', trigger: 'blur' },
+        ]
+      }
+    }
+  },
+  created () {
+    this.getRoleList()
+  },
+  methods: {
+    // 获取所有角色的列表
+    async getRoleList () {
+      const { data: res } = await this.$http.get('roles')
+      if (res.meta.status !== 200) {
+        return this.$Notification({
+          title: 'error',
+          message: '获取角色列表失败！',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      this.roleList = res.data
+      console.log(this.roleList)
+    },
+    // 修改按钮触发事件 展示编辑用户的对话框
+    async showEditDialog (id) {
+      // console.log(id)
+      const { data: res } = await this.$http.get('roles/' + id)
+      if (res.meta.status !== 200) {
+        return this.$Notification({
+          title: 'error',
+          message: '查询用户信息失败',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      this.editForm = res.data
+      console.log(this.editForm)
+      this.editDialogVisible = true
+    },
+    // 监听修改用户对话框的关闭事件
+    editDialogClosed () {
+      // 重置表单数据
+      this.$refs.editFormRef.resetFields()
+    },
+    // 修改角色信息并提交
+    editRoles () {
+      this.$refs.editFormRef.validate(async valid => {
+        // console.log(valid)
+        // 校验失败 直接返回
+        if (!valid) return
+        // 可以发起修改用户的请求
+        console.log(this.editForm)
+        const { data: res } = await this.$http.put(
+          'roles/' + this.editForm.roleId,
+          {
+            roleName: this.editForm.roleName,
+            roleDesc: this.editForm.roleDesc
+          }
+        )
+        if (res.meta.status !== 200) {
+          return this.$Notification({
+            title: 'error',
+            message: '更新角色信息失败',
+            type: 'error',
+            duration: 1000
+          })
+        }
+        // 关闭对话框
+        this.editDialogVisible = false
+        // 重新获取用户列表数据
+        this.getRoleList()
+        // 提示修改成功
+        this.$Notification({
+          title: 'success',
+          message: '更新用户成功',
+          type: 'success',
+          duration: 1000
+        })
+      })
+    },
+    // 根据roleId删除用户信息
+    async removeRoleById(id) {
+      // 询问用户是否删除数据
+      const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        cancelButtonText: '取消',
+        confirmButtonText: '确定',
+        type: 'warning'
+      }).catch(err => {
+        return err
+      })
+      // 如果用户确认删除 则返回值为confirm 如果取消删除 则返回值为cancel
+      // console.log(confirmResult)
+      // console.log(id)
+      if (confirmResult !== 'confirm') {
+        return this.$Notification({
+          title: 'error',
+          message: '取消删除',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      // 请求接口 删除用户
+      const { data: res } = await this.$http.delete('roles/' + id)
+      // 删除失败
+      if (res.meta.status !== 200) {
+        return this.$Notification({
+          title: 'error',
+          message: '删除用户失败',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      this.$Notification({
+        title: 'success',
+        message: '删除成功',
+        type: 'success',
+        duration: 1000
+      })
+      // 删除成功 刷新用户列表
+      this.getRoleList()
+    },
+    // 关闭添加用户对话框 重置表单
+    addDialogClosed () {
+      // console.log("1")
+      this.$refs.addFormRef.resetFields()
+    },
+    // 点击按钮 添加新角色
+    addRoles () {
+      this.$refs.addFormRef.validate(async valid => {
+        console.log(valid)
+        // 校验失败 直接返回
+        if (!valid) return
+        // // 可以发起添加用户的请求
+        const { data: res } = await this.$http.post('roles', this.addForm)
+        if (res.meta.status !== 201) {
+          return this.$Notification({
+            title: 'error',
+            message: '添加角色失败',
+            type: 'error',
+            duration: 1000
+          })
+        }
+        this.$Notification({
+          title: 'success',
+          message: '添加角色成功',
+          type: 'success',
+          duration: 1000
+        })
+        // 关闭添加输入框
+        this.addDialogVisible = false
+        // 重新获取用户列表数据
+        this.getRoleList()
+      })
+    }
+  }
+}
+</script>s
+<style lang="less" scoped>
+</style>
