@@ -16,7 +16,45 @@
       </el-row>
       <!-- 角色权限表格 -->
       <el-table :data="roleList" border stripe>
-        <el-table-column type="expand" align="center"></el-table-column>
+        <el-table-column type="expand" align="center">
+          <template slot-scope="scope">
+            <el-row
+              v-for="(item, i1) in scope.row.children"
+              :key="item.id"
+              :class="['bdbottom', i1 === 0 ? 'bdtop' : '', 'vcenter']"
+            >
+              <!-- 渲染一级权限 -->
+              <el-col :span="5">
+                <el-tag closable @close="removeRightByID(scope.row, item.id)">{{item.authName}}</el-tag>
+                <i class="el-icon-arrow-right"></i>
+              </el-col>
+              <!-- 渲染二级 三级权限 -->
+              <el-col :span="19">
+                <el-row
+                  v-for="(subItem, i2) in item.children"
+                  :key="subItem.id"
+                  :class="[i2 === 0 ? '' : 'bdtop', 'vcenter']"
+                >
+                  <!-- 渲染二级权限 -->
+                  <el-col :span="6">
+                    <el-tag type="success" closable @close="removeRightByID(scope.row, subItem.id)">{{subItem.authName}}</el-tag>
+                    <i class="el-icon-arrow-right"></i>
+                  </el-col>
+                  <!-- 渲染三级权限 -->
+                  <el-col :span="18">
+                    <el-tag
+                      v-for="(subSubItem) in subItem.children"
+                      :key="subSubItem.id"
+                      type="warning"
+                      closable
+                      @close="removeRightByID(scope.row, subSubItem.id)"
+                    >{{subSubItem.authName}}</el-tag>
+                  </el-col>
+                </el-row>
+              </el-col>
+            </el-row>
+          </template>
+        </el-table-column>
         <!-- 索引列 -->
         <el-table-column type="index" label="#" align="center"></el-table-column>
         <el-table-column label="角色名称" prop="roleName" align="center"></el-table-column>
@@ -70,7 +108,7 @@
       >
         <!-- 内容主体区域 -->
         <el-form label-width="70px" :model="editForm" :rules="editFormRules" ref="editFormRef">
-          <el-form-item label="名称"  prop="roleName">
+          <el-form-item label="名称" prop="roleName">
             <el-input v-model="editForm.roleName"></el-input>
           </el-form-item>
           <el-form-item label="描述" prop="roleDesc">
@@ -80,7 +118,7 @@
         <!-- 底部区域 -->
         <span slot="footer" class="dialog-footer">
           <el-button @click="editDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="editRoles"  >确 定</el-button>
+          <el-button type="primary" @click="editRoles">确 定</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -136,7 +174,7 @@ export default {
         })
       }
       this.roleList = res.data
-      console.log(this.roleList)
+      // console.log(this.roleList)
     },
     // 修改按钮触发事件 展示编辑用户的对话框
     async showEditDialog (id) {
@@ -151,7 +189,7 @@ export default {
         })
       }
       this.editForm = res.data
-      console.log(this.editForm)
+      // console.log(this.editForm)
       this.editDialogVisible = true
     },
     // 监听修改用户对话框的关闭事件
@@ -166,7 +204,7 @@ export default {
         // 校验失败 直接返回
         if (!valid) return
         // 可以发起修改用户的请求
-        console.log(this.editForm)
+        // console.log(this.editForm)
         const { data: res } = await this.$http.put(
           'roles/' + this.editForm.roleId,
           {
@@ -196,7 +234,7 @@ export default {
       })
     },
     // 根据roleId删除用户信息
-    async removeRoleById(id) {
+    async removeRoleById (id) {
       // 询问用户是否删除数据
       const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
         cancelButtonText: '取消',
@@ -244,7 +282,7 @@ export default {
     // 点击按钮 添加新角色
     addRoles () {
       this.$refs.addFormRef.validate(async valid => {
-        console.log(valid)
+        // console.log(valid)
         // 校验失败 直接返回
         if (!valid) return
         // // 可以发起添加用户的请求
@@ -268,9 +306,67 @@ export default {
         // 重新获取用户列表数据
         this.getRoleList()
       })
+    },
+    // 根据id删除对应权限
+    async removeRightByID (role, rightId) {
+      console.log(role, rightId)
+      // 弹框提示用户是否删除
+      const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        cancelButtonText: '取消',
+        confirmButtonText: '确定',
+        type: 'warning'
+      }).catch(err => {
+        return err
+      })
+      // 如果用户确认删除 则返回值为confirm 如果取消删除 则返回值为cancel
+      // console.log(confirmResult)
+      // console.log(id)
+      if (confirmResult !== 'confirm') {
+        return this.$Notification({
+          title: '',
+          message: '取消删除',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      // console.log('删除')
+      // 请求接口 删除用户
+      const { data: res } = await this.$http.delete(`roles/${role.id}/rights/${rightId}`)
+      // // 删除失败
+      // console.log(res)
+      if (res.meta.status !== 200) {
+        return this.$Notification({
+          title: 'error',
+          message: '删除用户失败',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      this.$Notification({
+        title: 'success',
+        message: '删除成功',
+        type: 'success',
+        duration: 1000
+      })
+      // 删除成功 刷新列表
+      // this.getRoleList()
+      role.children = res.data
     }
   }
 }
-</script>s
+</script>
 <style lang="less" scoped>
+.el-tag {
+  margin: 7px;
+}
+.bdtop {
+  border-top: 1px solid #eee;
+}
+.bdbottom {
+  border-bottom: 1px solid #eee;
+}
+.vcenter {
+  display: flex;
+  align-items: center;
+}
 </style>
