@@ -53,7 +53,12 @@
             </el-tooltip>
             <!-- 删除按钮 -->
             <el-tooltip effect="dark" content="删除" placement="top-start" :enterable="false">
-              <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+              <el-button
+                type="danger"
+                icon="el-icon-delete"
+                size="mini"
+                @click="removeUserById(scope.row.id)"
+              ></el-button>
             </el-tooltip>
             <!-- 分配角色按钮 -->
             <el-tooltip effect="dark" content="分配角色" placement="top-start" :enterable="false">
@@ -357,6 +362,47 @@ export default {
           duration: 1000
         })
       })
+    },
+    // 根据id删除用户信息
+    async removeUserById (id) {
+      // 询问用户是否删除数据
+      const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        cancelButtonText: '取消',
+        confirmButtonText: '确定',
+        type: 'warning'
+      }).catch(err => {
+        return err
+      })
+      // 如果用户确认删除 则返回值为confirm 如果取消删除 则返回值为cancel
+      // console.log(confirmResult)
+      // console.log(id)
+      if (confirmResult !== 'confirm') {
+        return this.$Notification({
+          title: 'error',
+          message: '取消删除',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      // 请求接口 删除用户
+      const { data: res } = await this.$http.delete('users/' + id)
+      // 删除失败
+      if (res.meta.status !== 200) {
+        return this.$Notification({
+          title: 'error',
+          message: '删除用户失败',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      this.$Notification({
+        title: 'success',
+        message: '删除成功',
+        type: 'success',
+        duration: 1000
+      })
+      // 删除成功 刷新用户列表
+      this.getUserList()
     }
   }
 
