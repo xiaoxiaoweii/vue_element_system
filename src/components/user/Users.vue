@@ -41,10 +41,15 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="300px" align="center">
-          <template>
+          <template slot-scope="scope">
             <!-- 修改按钮 -->
             <el-tooltip effect="dark" content="编辑" placement="top-start" :enterable="false">
-              <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+              <el-button
+                type="primary"
+                icon="el-icon-edit"
+                size="mini"
+                @click="showEditDialog(scope.row.id)"
+              ></el-button>
             </el-tooltip>
             <!-- 删除按钮 -->
             <el-tooltip effect="dark" content="删除" placement="top-start" :enterable="false">
@@ -91,6 +96,32 @@
         <span slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="addUser">确 定</el-button>
+        </span>
+      </el-dialog>
+
+      <!-- 修改用户对话框 -->
+      <el-dialog
+        title="修改用户"
+        :visible.sync="editDialogVisible"
+        width="50%"
+        @close="editDialogClosed"
+      >
+        <!-- 内容主体区域 -->
+        <el-form label-width="70px" :model="editForm" :rules="editFormRules" ref="editFormRef">
+          <el-form-item label="用户名">
+            <el-input v-model="editForm.username" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="editForm.email"></el-input>
+          </el-form-item>
+          <el-form-item label="手机号" prop="mobile">
+            <el-input v-model="editForm.mobile"></el-input>
+          </el-form-item>
+        </el-form>
+        <!-- 底部区域 -->
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editUser">确 定</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -163,6 +194,25 @@ export default {
           { validator: checkMobile, trigger: 'blur' }
         ]
       },
+      // 控制修改用户对话框是否可见
+      editDialogVisible: false,
+      // 保存修改用户信息
+      editForm: {
+        username: '',
+        email: '',
+        mobile: ''
+      },
+      // 修改用户表单校验
+      editFormRules: {
+        email: [
+          { required: true, message: '请输入邮箱', trigger: 'blur' },
+          { validator: checkEmail, trigger: 'blur' }
+        ],
+        mobile: [
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          { validator: checkMobile, trigger: 'blur' }
+        ]
+      }
 
     }
   },
@@ -251,6 +301,61 @@ export default {
         this.addDialogVisible = false
         // 重新获取用户列表数据
         this.getUserList()
+      })
+    },
+    // 修改按钮触发事件 展示编辑用户的对话框
+    async showEditDialog (id) {
+      // console.log(id)
+      const { data: res } = await this.$http.get('users/' + id)
+      if (res.meta.status !== 200) {
+        return this.$Notification({
+          title: 'error',
+          message: '查询用户信息失败',
+          type: 'error',
+          duration: 1000
+        })
+      }
+      this.editForm = res.data
+      this.editDialogVisible = true
+    },
+    // 监听修改用户对话框的关闭事件
+    editDialogClosed () {
+      // 重置表单数据
+      this.$refs.editFormRef.resetFields()
+    },
+    // 修改用户信息并提交
+    editUser () {
+      this.$refs.editFormRef.validate(async valid => {
+        // console.log(valid)
+        // 校验失败 直接返回
+        if (!valid) return
+        // 可以发起修改用户的请求
+        const { data: res } = await this.$http.put(
+          'users/' + this.editForm.id,
+          {
+            email: this.editForm.email,
+            mobile: this.editForm.mobile
+          }
+        )
+        if (res.meta.status !== 200) {
+          return this.$Notification({
+            title: 'error',
+            message: '更新用户失败',
+            type: 'error',
+            duration: 1000
+          })
+        }
+        // 关闭对话框
+        this.editDialogVisible = false
+        // 重新获取用户列表数据
+        this.getUserList()
+        // 提示修改成功
+        this.$Notification({
+          title: 'success',
+          message: '更新用户成功',
+          type: 'success',
+          duration: 1000
+        })
       })
     }
   }
