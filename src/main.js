@@ -32,7 +32,10 @@ import {
   Tree,
   Select,
   Option,
-  Cascader
+  Cascader,
+  Alert,
+  Tabs,
+  TabPane
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css';
 import TreeTable from 'vue-table-with-tree-grid'
@@ -82,6 +85,9 @@ Vue.use(Tree)
 Vue.use(Select)
 Vue.use(Option)
 Vue.use(Cascader)
+Vue.use(Alert)
+Vue.use(Tabs)
+Vue.use(TabPane)
 Vue.prototype.$Notification = Notification
 Vue.prototype.$confirm = MessageBox.confirm
 Vue.component('tree-table', TreeTable)
