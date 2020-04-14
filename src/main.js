@@ -31,9 +31,11 @@ import {
   Tag,
   Tree,
   Select,
-  Option
+  Option,
+  Cascader
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css';
+import TreeTable from 'vue-table-with-tree-grid'
 
 import axios from 'axios'
 // 将axios挂载到vue原型对象上
@@ -79,8 +81,10 @@ Vue.use(Tag)
 Vue.use(Tree)
 Vue.use(Select)
 Vue.use(Option)
+Vue.use(Cascader)
 Vue.prototype.$Notification = Notification
 Vue.prototype.$confirm = MessageBox.confirm
+Vue.component('tree-table', TreeTable)
 
 new Vue({
   router,
